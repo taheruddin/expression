@@ -1,0 +1,7 @@
+<p *ngIf="xpn | async">
+  {{xpn | async | json}}
+</p>
+
+<div *ngFor="let exp of xpns | async">
+    {{exp.text}}
+</div>
