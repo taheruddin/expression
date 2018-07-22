@@ -1,0 +1,10 @@
+p.form-control.rating {
+    line-height: 1.2em;
+}
+.star {
+    font-size: 1.6rem;
+    color: #999999;
+}
+.filled {
+    color: #1e90ff;
+}

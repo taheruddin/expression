@@ -12,6 +12,7 @@ import { AngularFireDatabaseModule } from 'angularfire2/database';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { AddExpressionComponent } from './views/add-expression/add-expression.component';
 import { HomeComponent } from './views/home/home.component';
+import {ReactiveFormsModule} from '@angular/forms';
 
 
 @NgModule({
@@ -23,6 +24,7 @@ import { HomeComponent } from './views/home/home.component';
     imports: [
         BrowserModule,
         AppRoutingModule,
+        ReactiveFormsModule,
         AngularFireModule.initializeApp(environment.firebase),
         AngularFirestoreModule,
         AngularFireDatabaseModule,

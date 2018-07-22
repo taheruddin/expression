@@ -1,7 +1,73 @@
-<p *ngIf="xpn | async">
+<p>
   {{xpn | async | json}}
 </p>
 
-<div *ngFor="let exp of xpns | async">
-    {{exp.text}}
-</div>
+<p>
+    {{xpns | async | json}}
+</p>
+
+
+
+<form [formGroup]="xpnFrm" (ngSubmit)="save()">
+    <div class="form-group">
+        <h2 class="text-center">Expression </h2>
+        <textarea [formControl]="xpnFrm.get('text')"
+                  class="form-control my-4"
+                  [ngClass]="{'is-invalid': ((!xpnFrm.get('text').dirty)) && xpnFrm.dirty}"></textarea>
+        <p class="text-center">
+            <label>
+                <select [formControl]="xpnFrm.get('type')"
+                        [ngClass]="{'is-invalid': (xpnFrm.get('type').invalid && xpnFrm.dirty)}"
+                        class="form-control">
+                    <option [ngValue]="null">Expression type</option>
+                    <option *ngFor="let xpnType of xpnTypes" [ngValue]="xpnType">{{xpnType | titlecase}}</option>
+                </select>
+            </label>
+
+        </p>
+        <p class="text-center py-0 rating">
+            <ngb-rating [formControl]="xpnFrm.get('rating')">
+                <ng-template let-fill="fill" let-index="index">
+                    <span class="star" [class.filled]="fill === 100">&#9733;</span>
+                </ng-template>
+            </ngb-rating><br>
+            How much you like this expression?
+        </p>
+        <div class="form-group border-bottom py-4">
+            <h3 class="text-center">Meanings</h3>
+            <div class="form-group border p-4" *ngFor="let meaning of xpnFrm.get('meanings')['controls']; index as m;">
+                <textarea [formControl]="meaning.get('text')" placeholder="meaning" class="form-control my-4"></textarea>
+                <div class="form-row">
+                    <div class="col-md-6">
+                        <select [formControl]="meaning.get('partsOfSpeech')"
+                                [ngClass]="{'is-invalid': (meaning.get('partsOfSpeech').invalid && xpnFrm.dirty)}"
+                                class="form-control">
+                            <option *ngFor="let part of parts" [ngValue]="part">{{part | titlecase}}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <select [formControl]="meaning.get('language')"
+                                class="form-control">
+                            <option *ngFor="let lng of lngs">{{lng | titlecase}}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" *ngFor="let example of meaning.get('examples')['controls'];">
+                    <textarea [formControl]="example.get('text')" placeholder="example" class="form-control my-4"></textarea>
+                </div>
+                <p class="text-center">
+                    <button type="button" class="btn btn-primary" (click)="addExample(m)">Add more example</button>
+                </p>
+            </div>
+            <div class="form-row">
+                <div class="col">
+                    <p class="text-center"><button type="button" class="btn btn-primary" (click)="addMeaning()">Add more meaning</button></p>
+                </div>
+            </div>
+        </div>
+        <p class="text-center">
+            <button type="submit" class="btn btn-primary mb-2" [disabled]="!xpnFrm.get('text').dirty">Save</button>
+        </p>
+    </div>
+</form>
