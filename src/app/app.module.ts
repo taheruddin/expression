@@ -12,18 +12,21 @@ import { AngularFireDatabaseModule } from 'angularfire2/database';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { AddExpressionComponent } from './views/add-expression/add-expression.component';
 import { HomeComponent } from './views/home/home.component';
-import {ReactiveFormsModule} from '@angular/forms';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import { EditExpressionComponent } from './views/edit-expression/edit-expression.component';
 
 
 @NgModule({
     declarations: [
         AppComponent,
         AddExpressionComponent,
-        HomeComponent
+        HomeComponent,
+        EditExpressionComponent
     ],
     imports: [
         BrowserModule,
         AppRoutingModule,
+        FormsModule,
         ReactiveFormsModule,
         AngularFireModule.initializeApp(environment.firebase),
         AngularFirestoreModule,

@@ -1,17 +1,60 @@
-<div class="container">
-
-  <div class="row">
+<div class="row">
     <div class="col-12">
-      <h4 class="text-center">Interesting Expressions</h4>
+        <h1 class="text-center">Interesting Expressions</h1>
     </div>
-  </div>
-
-  <div class="row">
-        <div class="col-12">
-          <p class="text-center">
-            <a routerLink="/add-expression" class="btn btn-success">Add expression</a>
-          </p>
-        </div>
-    </div>
-
 </div>
+
+<div class="row">
+    <div class="col-12">
+        <input type="text"
+               [(ngModel)]="searchWord"
+               class="form-control text-center my-4"
+               placeholder="Part of expression to search">
+        <button type="submit"
+                class="btn btn-primary btn-block mt-2 mb-5"
+                (click)="search()">Search</button>
+    </div>
+</div>
+Result = {{searchResult | async | json}}
+topRated = {{topRated | async | json}}
+<div class="list-group">
+    <a routerLink="/edit/-"
+       *ngFor="let xpn of searchResult | async"
+       class="list-group-item">
+        <div class="d-flex w-100 justify-content-between">
+            <h4 class="mb-1">{{xpn.text | titlecase}}</h4>
+            <small>
+                {{xpn.rating}}<ngb-rating [(rate)]="xpn.rating"></ngb-rating>
+            </small>
+        </div>
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <p class="text-center">
+            <a routerLink="/add" class="btn btn-success">+ Add expression</a>
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h4 class="text-center">Most liked expressions</h4>
+    </div>
+</div>
+
+<div class="list-group">
+    <a routerLink="/edit/-"
+       *ngFor="let xpn of (topRated | async)"
+       class="list-group-item">
+        <div class="d-flex w-100 justify-content-between">
+            <h4 class="mb-1">{{xpn.text | titlecase}}</h4>
+            <small>
+                {{xpn.rating}}<ngb-rating [(rate)]="xpn.rating"></ngb-rating>
+            </small>
+        </div>
+    </a>
+</div>
+
+<!--{{topRated | async | json}}-->

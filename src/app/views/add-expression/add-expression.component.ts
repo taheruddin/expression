@@ -2,14 +2,14 @@ import {Component, OnInit} from '@angular/core';
 import {Observable} from 'rxjs/internal/Observable';
 import {AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument} from 'angularfire2/firestore';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
+import {Router} from '@angular/router';
 import {map} from 'rxjs/operators';
 import {Expression} from '../../models/expression';
+import {Meaning} from '../../models/meaning';
+import {Example} from '../../models/example';
 import {partsofspeeches} from '../../models/parts-of-speeches';
 import {languages} from '../../models/languages';
 import {expressiontypes} from '../../models/expression-types';
-import {Example} from '../../models/example';
-import {Meaning} from '../../models/meaning';
-import {of} from 'rxjs/internal/observable/of';
 
 @Component({
   selector: 'app-add-expression',
@@ -21,8 +21,8 @@ export class AddExpressionComponent implements OnInit {
     xpnFrm: FormGroup;
     meaning: Function;
     example: Function;
-    xpnDoc: AngularFirestoreDocument<Expression>;
-    xpn: Observable<Expression>;
+    /*xpnDoc: AngularFirestoreDocument<Expression>;
+    xpn: Observable<Expression>;*/
     xpnCol: AngularFirestoreCollection<Expression>;
     mngCol: AngularFirestoreCollection<Meaning>;
     xmlCol: AngularFirestoreCollection<Example>;
@@ -31,7 +31,7 @@ export class AddExpressionComponent implements OnInit {
     parts: string[];
     lngs: string[];
 
-    constructor(private afs: AngularFirestore) {
+    constructor(private router: Router, private afs: AngularFirestore) {
         this.xpnCol = this.afs.collection('espressions');
         this.mngCol = this.afs.collection('meanings');
         this.xmlCol = this.afs.collection('examples');
@@ -73,8 +73,8 @@ export class AddExpressionComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.xpnDoc = this.afs.doc<Expression>('/espressions/gicoo2oXbp1J5jLPCe8v');
-        this.xpn = this.xpnDoc.valueChanges();
+        /*this.xpnDoc = this.afs.doc<Expression>('/espressions/gicoo2oXbp1J5jLPCe8v');
+        this.xpn = this.xpnDoc.valueChanges();*/
     }
 
     addMeaning() {
@@ -126,8 +126,8 @@ export class AddExpressionComponent implements OnInit {
                     });
                 }
             }
+            this.router.navigate(['/home']);
         });
     }
 
 }
-// If you don't listen to the news you are uninformed, if you read, you are misinformed.
