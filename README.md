@@ -1,2 +1,2 @@
 # smarten-english
-A good way to collect interesting expression.
+A good way to collect interesting expressions.

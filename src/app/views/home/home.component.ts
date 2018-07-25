@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import {AngularFirestore, AngularFirestoreCollection} from 'angularfire2/firestore';
 import {Observable} from 'rxjs/internal/Observable';
 import {Expression} from '../../models/expression';
-import {filter, map} from 'rxjs/operators';
+import {map} from 'rxjs/operators';
 
 @Component({
   selector: 'app-home',
@@ -19,7 +19,9 @@ export class HomeComponent implements OnInit {
         this.searchWord = '';
         this.xpnCol = this.afs.collection('espressions');
         this.topRated = this.afs
-            .collection<Expression>('espressions', ref => ref.orderBy('rating', 'desc'))
+            .collection<Expression>('espressions', ref => ref
+                .orderBy('rating', 'desc')
+                .limit(5))
             .snapshotChanges()
             .pipe(map(actions => actions.map(
                 action => {
@@ -28,32 +30,17 @@ export class HomeComponent implements OnInit {
                     return xpn;
                 }
             )));
-        this.topRated.subscribe(value => console.log(value));
     }
 
     search() {
-        console.log('searching ...');
-        /*this.searchResult = [];
-        this.afs.collection<Expression>('espressions')
-            .snapshotChanges()
-            .subscribe(actons => actons.map(action => {
-                console.log(action.payload.doc.data());
-                const xpn: Expression = action.payload.doc.data();
-                if (xpn.text && xpn.text.includes('f')) {
-                    this.searchResult.push(xpn);
-                }
-            }));*/
-        // this.searchResult = [];
         this.searchResult = this.afs.collection<Expression>('espressions')
             .snapshotChanges()
             .pipe(map(actions => actions.filter(action => {
-                console.log(action);
-                return action.payload.doc.data().text && action.payload.doc.data().text.includes('f');
+                return action.payload.doc.data().text && action.payload.doc.data().text.includes(this.searchWord.toLowerCase());
             })), map(actions => actions.map(
                 action => {
                     const xpn = action.payload.doc.data();
                     xpn.id = action.payload.doc.id;
-                    console.log(xpn);
                     return xpn;
                 }
             )), );

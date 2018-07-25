@@ -1,0 +1,34 @@
+<div class="row">
+    <div class="col-12 text-center">
+        <h2>... {{xpn.text}} ...</h2>
+        <h4 >
+            <span class="text-primary">
+        <ngb-rating [(rate)]="xpn.rating"></ngb-rating>
+    </span>
+        </h4>
+        <span>{{xpn.rating}}</span>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h4 class="text-center text-success mt-lg-5" *ngIf="xpn.meanings.length">Meanings</h4>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 text-center border pt-2 mb-3" *ngFor="let mng of xpn.meanings">
+        <h6 class="my-4">--- {{mng.text}} ---</h6>
+        <h6 class="text-primary" *ngIf="mng.examples.length">Examples</h6>
+        <p *ngFor="let xmpl of mng.examples">
+            {{xmpl.text}}
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 text-center">
+        <a class="btn btn-success" routerLink="/home">Back to Home</a>
+    </div>
+</div>
+

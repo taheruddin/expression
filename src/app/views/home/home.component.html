@@ -15,10 +15,9 @@
                 (click)="search()">Search</button>
     </div>
 </div>
-Result = {{searchResult | async | json}}
-topRated = {{topRated | async | json}}
+
 <div class="list-group">
-    <a routerLink="/edit/-"
+    <a routerLink="/show/{{xpn.id}}"
        *ngFor="let xpn of searchResult | async"
        class="list-group-item">
         <div class="d-flex w-100 justify-content-between">
@@ -40,12 +39,12 @@ topRated = {{topRated | async | json}}
 
 <div class="row">
     <div class="col-12">
-        <h4 class="text-center">Most liked expressions</h4>
+        <h4 class="text-center mt-lg-5">Most liked expressions</h4>
     </div>
 </div>
 
 <div class="list-group">
-    <a routerLink="/edit/-"
+    <a routerLink="/show/{{xpn.id}}"
        *ngFor="let xpn of (topRated | async)"
        class="list-group-item">
         <div class="d-flex w-100 justify-content-between">

@@ -9,7 +9,7 @@ import {AngularFirestore} from 'angularfire2/firestore';
 })
 export class AppComponent implements OnInit {
   constructor (private db: AngularFireDatabase, private afs: AngularFirestore) {}
-  title = 'app';
+  title = 'Interesting Expressions';
   reply: any;
 
   ngOnInit() {
