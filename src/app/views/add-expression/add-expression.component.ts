@@ -10,6 +10,7 @@ import {Example} from '../../models/example';
 import {partsofspeeches} from '../../models/parts-of-speeches';
 import {languages} from '../../models/languages';
 import {expressiontypes} from '../../models/expression-types';
+import {ExpressionService} from '../../services/expression.service';
 
 @Component({
   selector: 'app-add-expression',
@@ -31,34 +32,17 @@ export class AddExpressionComponent implements OnInit {
     parts: string[];
     lngs: string[];
 
-    constructor(private router: Router, private afs: AngularFirestore) {
+    constructor(private router: Router, private afs: AngularFirestore, private xpnServ: ExpressionService) {
         this.xpnCol = this.afs.collection('espressions');
         this.mngCol = this.afs.collection('meanings');
         this.xmlCol = this.afs.collection('examples');
         this.xpnTypes = expressiontypes;
         this.parts = partsofspeeches;
         this.lngs = languages;
-        this.xpnFrm = new FormGroup({
-            text: new FormControl('', Validators.required),
-            type: new FormControl(null, Validators.required),
-            rating: new FormControl(5),
-            meanings: new FormArray([])
-        });
-        this.meaning = (): FormGroup => {
-            return new FormGroup({
-                text: new FormControl(''),
-                partsOfSpeech: new FormControl('noun'),
-                language: new FormControl('english'),
-                examples: new FormArray([])
-            });
-        };
-        this.example = (): FormGroup => {
-            return new FormGroup({
-                text: new FormControl('')
-            });
-        };
-        (<FormArray>this.xpnFrm.get('meanings')).push(this.meaning());
-        (<FormArray>(<FormArray>this.xpnFrm.get('meanings')).at(0).get('examples')).push(this.example());
+        this.xpnFrm = this.xpnServ.getBlankExpressionFormGroup();
+        (<FormArray>this.xpnFrm.get('meanings')).push(this.xpnServ.getBlankMeaningFormGroup());
+        (<FormArray>(<FormArray>this.xpnFrm.get('meanings')).at(0).get('examples'))
+            .push(this.xpnServ.getBlankExampleFormGroup());
 
 
 
@@ -79,55 +63,24 @@ export class AddExpressionComponent implements OnInit {
 
     addMeaning() {
         const numOfMeaing = (<FormArray>this.xpnFrm.get('meanings')).length;
-        (<FormArray>this.xpnFrm.get('meanings')).push(this.meaning());
-        (<FormArray>(<FormArray>this.xpnFrm.get('meanings')).at(numOfMeaing).get('examples')).push(this.example());
+        (<FormArray>this.xpnFrm.get('meanings')).push(this.xpnServ.getBlankMeaningFormGroup());
+        (<FormArray>(<FormArray>this.xpnFrm.get('meanings')).at(numOfMeaing).get('examples'))
+            .push(this.xpnServ.getBlankExampleFormGroup());
     }
 
     addExample(meaningIndex) {
-        (<FormArray>(<FormArray>this.xpnFrm.get('meanings')).at(meaningIndex).get('examples')).push(this.example());
+        (<FormArray>(<FormArray>this.xpnFrm.get('meanings')).at(meaningIndex).get('examples'))
+            .push(this.xpnServ.getBlankExampleFormGroup());
     }
 
     save() {
-        // console.warn(this.xpnFrm);
-        const newXpn = {
-            text: this.xpnFrm.get('text').value,
-            type: this.xpnFrm.get('type').value,
-            rating: this.xpnFrm.get('rating').value
-        };
-        console.warn(newXpn);
-        this.xpnCol.add(newXpn as Expression).then(savedXpnDoc => {
-            console.log('Saved Expression - ' + savedXpnDoc.id + ' - New Expression - ' + newXpn.text);
-            const mngs = (<FormArray>this.xpnFrm.get('meanings'));
-            const mngsLen = mngs.length;
-            for (let m = 0; m < mngsLen; m++) {
-                if (mngs.at(m).dirty) {
-                    const newMng = {
-                        text: mngs.at(m).get('text').value,
-                        partsOfSpeech: mngs.at(m).get('partsOfSpeech').value,
-                        language: mngs.at(m).get('language').value,
-                        expressionId: savedXpnDoc.id
-                    };
-                    console.log(newMng);
-                    this.mngCol.add(newMng as Meaning).then(savedMngDoc => {
-                        console.log('Saved Meaning - ' + savedMngDoc.id + ' - ' + newMng.text);
-                        const xmls = (<FormArray>(<FormArray>this.xpnFrm.get('meanings')).at(m).get('examples'));
-                        const xplsLen = xmls.length;
-                        for (let p = 0; p < xplsLen; p++) {
-                            if (xmls.at(p).dirty) {
-                                const newXml = {
-                                    text: xmls.at(p).get('text').value,
-                                    meaningId: savedMngDoc.id
-                                };
-                                this.xmlCol.add(newXml as Example).then(savedXmplDoc => {
-                                    console.log('Saved Example - ' + savedXmplDoc.id + ' - ' + newXml.text);
-                                });
-                            }
-                        }
-                    });
-                }
-            }
-            this.router.navigate(['/home']);
-        });
+        const newXpn = this.xpnServ.formToExpression(this.xpnFrm);
+        if (newXpn) {
+            this.xpnServ.addExpression(newXpn, (expressionId) => {
+                this.router.navigate(['/show/' + expressionId]);
+            });
+        }
+        console.log(newXpn);
     }
 
 }
