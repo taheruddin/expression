@@ -15,7 +15,7 @@ export class ExpressionService {
     mngCol: AngularFirestoreCollection;
     xmlCol: AngularFirestoreCollection;
 
-    constructor(private afs: AngularFirestore, private xpnServ: ExpressionService) {
+    constructor(private afs: AngularFirestore) {
         this.xpnCol = this.afs.collection('/espressions/');
         this.mngCol = this.afs.collection('/meanings/');
         this.xmlCol = this.afs.collection('/examples/');
