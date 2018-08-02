@@ -76,7 +76,10 @@ export class AddExpressionComponent implements OnInit {
     save() {
         const newXpn = this.xpnServ.formToExpression(this.xpnFrm);
         if (newXpn) {
-            this.xpnServ.addExpression(newXpn, (expressionId) => {
+            /*this.xpnServ.addExpression(newXpn, (expressionId) => {
+                this.router.navigate(['/show/' + expressionId]);
+            });*/
+            this.xpnServ.addAll(newXpn, expressionId => {
                 this.router.navigate(['/show/' + expressionId]);
             });
         }
