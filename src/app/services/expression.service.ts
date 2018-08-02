@@ -32,9 +32,7 @@ export class ExpressionService {
     getEpressionById(id: string): Expression {
         const xpn = new Expression();
         xpn.id = id;
-        console.log(id);
         this.afs.doc('/espressions/' + xpn.id).valueChanges().subscribe(xpnDoc => {
-            console.log(xpnDoc);
             if (xpnDoc) {
                 xpn.text = (<Expression>xpnDoc).text;
                 xpn.rating = (<Expression>xpnDoc).rating;
@@ -42,7 +40,6 @@ export class ExpressionService {
             } else {
                 xpn.text = 'Expression not found!';
             }
-            console.log(xpn);
         });
         xpn.meanings = this.getMeaningsByExpressionId(id);
         return xpn;
@@ -75,7 +72,7 @@ export class ExpressionService {
         return xmls;
     }
 
-    addExpressionO(xpn: Expression): Promise<DocumentReference> {
+    addExpression(xpn: Expression): Promise<DocumentReference> {
         const newXpn = {
             text: xpn.text,
             type: xpn.type,
@@ -84,7 +81,7 @@ export class ExpressionService {
         return this.xpnCol.add(newXpn);
     }
 
-    addMeaningO(mng: Meaning): Promise<DocumentReference> {
+    addMeaning(mng: Meaning): Promise<DocumentReference> {
         const newMng = {
             text: mng.text,
             partsOfSpeech: mng.partsOfSpeech,
@@ -94,7 +91,7 @@ export class ExpressionService {
         return this.mngCol.add(newMng);
     }
 
-    addExampleO(xml: Example): Promise<DocumentReference> {
+    addExample(xml: Example): Promise<DocumentReference> {
         const newXml = {
             text: xml.text,
             meaningId: xml.meaningId
@@ -103,7 +100,7 @@ export class ExpressionService {
     }
 
     addAll(xpn: Expression, allDone?: Function) {
-        this.addExpressionO(xpn).then(addedXpnDoc => {
+        this.addExpression(xpn).then(addedXpnDoc => {
             const mngs = xpn.meanings;
             const mngsLen = mngs.length;
             if (mngsLen === 0 && allDone) {
@@ -111,7 +108,7 @@ export class ExpressionService {
             } else {
                 for (let m = 0; m < mngsLen; m++) {
                     mngs[m].expressionId = addedXpnDoc.id;
-                    this.addMeaningO(mngs[m]).then(addedMngDoc => {
+                    this.addMeaning(mngs[m]).then(addedMngDoc => {
                         const xmls = mngs[m].examples;
                         const xmlsLen = xmls.length;
                         if (!xmlsLen && m === mngsLen - 1 && allDone) {
@@ -119,7 +116,7 @@ export class ExpressionService {
                         } else {
                             for (let p = 0; p < xmlsLen; p++) {
                                 xmls[p].meaningId = addedMngDoc.id;
-                                this.addExampleO(xmls[p]).then(addedXmlDoc => {
+                                this.addExample(xmls[p]).then(addedXmlDoc => {
                                     if (m === mngsLen - 1 && p === xmlsLen - 1 && allDone) {
                                         allDone(addedXpnDoc.id);
                                     }
@@ -135,82 +132,9 @@ export class ExpressionService {
             }
         }).catch(reason => {
             console.log('Adding expression failed!');
+            return false;
         });
     }
-
-    /*addExpression(xpn: Expression, after?: Function, before?: Function) {
-        if (before) {
-            before();
-        }
-        const newXpn = {
-            text: xpn.text,
-            type: xpn.type,
-            rating: xpn.rating
-        };
-        this.xpnCol.add(newXpn).then(savedXpnDoc => {
-            const mngs = xpn.meanings;
-            const mngsLen = mngs.length;
-            if (mngsLen === 0) {
-                if (after) {
-                    after(savedXpnDoc.id);
-                }
-            } else {
-                for (let m = 0; m < mngsLen; m++) {
-                    mngs[m].expressionId = savedXpnDoc.id;
-                    if (m === (mngsLen - 1)) {
-                        this.addManing(mngs[m], savedXpnDoc.id, after || undefined);
-                    } else {
-                        this.addManing(mngs[m], savedXpnDoc.id);
-                    }
-                }
-            }
-        });
-    }*/
-
-    /*addManing(mng: Meaning, expressionId: string, after?: Function, before?: Function) {
-        if (before) {
-            before();
-        }
-        const newMng = {
-            text: mng.text,
-            partsOfSpeech: mng.partsOfSpeech,
-            language: mng.language,
-            expressionId: mng.expressionId
-        };
-        this.mngCol.add(newMng).then(savedMngDoc => {
-            const xmls = mng.examples;
-            const xplsLen = xmls.length;
-            if (xplsLen === 0) {
-                if (after) {
-                    after(expressionId);
-                }
-            } else {
-                for (let p = 0; p < xplsLen; p++) {
-                    xmls[p].meaningId = savedMngDoc.id;
-                    if (p === (xplsLen - 1)) {
-                        this.addExample(xmls[p], expressionId, savedMngDoc.id, after || undefined);
-                    } else {
-                        this.addExample(xmls[p], expressionId, savedMngDoc.id);
-                    }
-                }
-            }
-        });
-    }*/
-
-    /*addExample(xml: Example, expressionId: string, meaningId: string, after?: Function, before?: Function) {
-        if (before) {
-            before();
-        }
-        const newXml = {
-            text: xml.text,
-            meaningId: xml.meaningId
-        };
-        this.xmlCol.add(newXml as Example).then(savedXmplDoc => {
-            if (after) {
-                after(expressionId);
-            }
-        });
-    }*/
 
     formToExpression(xpnFrm: FormGroup): Expression |false {
         if (xpnFrm.dirty) {

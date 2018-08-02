@@ -3,7 +3,6 @@ import {Observable} from 'rxjs/internal/Observable';
 import {AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument} from 'angularfire2/firestore';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Router} from '@angular/router';
-import {map} from 'rxjs/operators';
 import {Expression} from '../../models/expression';
 import {Meaning} from '../../models/meaning';
 import {Example} from '../../models/example';
@@ -20,10 +19,6 @@ import {ExpressionService} from '../../services/expression.service';
 export class AddExpressionComponent implements OnInit {
 
     xpnFrm: FormGroup;
-    meaning: Function;
-    example: Function;
-    /*xpnDoc: AngularFirestoreDocument<Expression>;
-    xpn: Observable<Expression>;*/
     xpnCol: AngularFirestoreCollection<Expression>;
     mngCol: AngularFirestoreCollection<Meaning>;
     xmlCol: AngularFirestoreCollection<Example>;
@@ -32,10 +27,7 @@ export class AddExpressionComponent implements OnInit {
     parts: string[];
     lngs: string[];
 
-    constructor(private router: Router, private afs: AngularFirestore, private xpnServ: ExpressionService) {
-        this.xpnCol = this.afs.collection('espressions');
-        this.mngCol = this.afs.collection('meanings');
-        this.xmlCol = this.afs.collection('examples');
+    constructor(private router: Router, private xpnServ: ExpressionService) {
         this.xpnTypes = expressiontypes;
         this.parts = partsofspeeches;
         this.lngs = languages;
@@ -43,22 +35,9 @@ export class AddExpressionComponent implements OnInit {
         (<FormArray>this.xpnFrm.get('meanings')).push(this.xpnServ.getBlankMeaningFormGroup());
         (<FormArray>(<FormArray>this.xpnFrm.get('meanings')).at(0).get('examples'))
             .push(this.xpnServ.getBlankExampleFormGroup());
-
-
-
-        // this.xpns = this.xpnCol.valueChanges();
-        this.xpns = this.xpnCol.snapshotChanges().pipe(map(actions => {
-            return actions.map(action => {
-                const dxpn = action.payload.doc.data() as Expression;
-                dxpn.id = action.payload.doc.id;
-                return dxpn;
-            });
-        }));
     }
 
     ngOnInit() {
-        /*this.xpnDoc = this.afs.doc<Expression>('/espressions/gicoo2oXbp1J5jLPCe8v');
-        this.xpn = this.xpnDoc.valueChanges();*/
     }
 
     addMeaning() {
@@ -76,14 +55,10 @@ export class AddExpressionComponent implements OnInit {
     save() {
         const newXpn = this.xpnServ.formToExpression(this.xpnFrm);
         if (newXpn) {
-            /*this.xpnServ.addExpression(newXpn, (expressionId) => {
-                this.router.navigate(['/show/' + expressionId]);
-            });*/
             this.xpnServ.addAll(newXpn, expressionId => {
                 this.router.navigate(['/show/' + expressionId]);
             });
         }
-        console.log(newXpn);
     }
 
 }

@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {Expression} from '../../models/expression';
 import {AngularFirestore} from 'angularfire2/firestore';
-import {Meaning} from '../../models/meaning';
 import {ExpressionService} from '../../services/expression.service';
 
 @Component({
