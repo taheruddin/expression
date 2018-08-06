@@ -18,21 +18,72 @@ import {after} from 'selenium-webdriver/testing';
   providedIn: 'root'
 })
 export class ExpressionService {
-    xpn: Expression;
     xpnCol: AngularFirestoreCollection;
     mngCol: AngularFirestoreCollection;
     xmlCol: AngularFirestoreCollection;
+    xpnColName: string;
+    mngColName: string;
+    xmlColName: string;
 
     constructor(private afs: AngularFirestore) {
         this.xpnCol = this.afs.collection('/espressions/');
         this.mngCol = this.afs.collection('/meanings/');
         this.xmlCol = this.afs.collection('/examples/');
+        this.xpnColName = '/espressions/';
+        this.mngColName = '/meanings/';
+        this.xmlColName = '/examples/';
+    }
+
+    getFullEpressionById(id: string, done?: Function) {
+        const xpn = new Expression();
+        xpn.id = id;
+        this.afs.doc(this.xpnColName + xpn.id).valueChanges().subscribe(xpnDoc => {
+            if (xpnDoc) {
+                xpn.text = (<Expression>xpnDoc).text;
+                xpn.rating = (<Expression>xpnDoc).rating;
+                xpn.type = (<Expression>xpnDoc).type;
+                xpn.meanings = [];
+                this.afs
+                    .collection(this.mngColName , ref => ref.where('expressionId', '==', id))
+                    .snapshotChanges()
+                    .subscribe(mctions => {
+                        if (mctions.length === 0 && done) {
+                            done(xpn);
+                        }
+                        mctions.forEach((mction, mi) => {
+                            const mng: Meaning = (<Meaning>mction.payload.doc.data());
+                            mng.id = mction.payload.doc.id;
+                            mng.examples = [];
+                            this.afs
+                                .collection(this.xmlColName , ref => ref.where('meaningId', '==', mng.id))
+                                .snapshotChanges()
+                                .subscribe(ections => {
+                                    if (ections.length === 0 && mi === mctions.length - 1 && done) {
+                                        done(xpn);
+                                    }
+                                    ections.forEach((ection, ei) => {
+                                        const xml: Example = <Example>ection.payload.doc.data();
+                                        xml.id = ection.payload.doc.id;
+                                        xpn.meanings[mi].examples.push(xml);
+                                        if (mi === mctions.length - 1 && ei === ections.length - 1 && done) {
+                                            done(xpn);
+                                        }
+                                    });
+                                });
+                            xpn.meanings.push(mng);
+                        });
+                    });
+
+            } else {
+                xpn.text = 'Expression not found!';
+            }
+        });
     }
 
     getEpressionById(id: string): Expression {
         const xpn = new Expression();
         xpn.id = id;
-        this.afs.doc('/espressions/' + xpn.id).valueChanges().subscribe(xpnDoc => {
+        this.afs.doc(this.xpnColName + xpn.id).valueChanges().subscribe(xpnDoc => {
             if (xpnDoc) {
                 xpn.text = (<Expression>xpnDoc).text;
                 xpn.rating = (<Expression>xpnDoc).rating;
@@ -45,10 +96,10 @@ export class ExpressionService {
         return xpn;
     }
 
-    getMeaningsByExpressionId(id): Meaning[] {
+    getMeaningsByExpressionId(id: string): Meaning[] {
         const mngs: Meaning[] = [];
         this.afs
-            .collection('/meanings', ref => ref.where('expressionId', '==', id))
+            .collection(this.mngColName , ref => ref.where('expressionId', '==', id))
             .snapshotChanges()
             .subscribe(actions => actions.forEach(action => {
                 const mng: Meaning = (<Meaning>action.payload.doc.data());
@@ -62,7 +113,7 @@ export class ExpressionService {
     getExamplesByMeaningId(id: string): Example[] {
         const xmls: Example[] = [];
         this.afs
-            .collection('/examples', ref => ref.where('meaningId', '==', id))
+            .collection(this.xmlColName , ref => ref.where('meaningId', '==', id))
             .snapshotChanges()
             .subscribe(actions => actions.map(action => {
                 const xml: Example = <Example>action.payload.doc.data();
@@ -139,7 +190,7 @@ export class ExpressionService {
     formToExpression(xpnFrm: FormGroup): Expression |false {
         if (xpnFrm.dirty) {
             const newXpn: Expression = {
-                id: '',
+                id: (xpnFrm.get('id') && xpnFrm.get('id').value) || '',
                 text: xpnFrm.get('text').value,
                 type: xpnFrm.get('type').value,
                 rating: xpnFrm.get('rating').value,
@@ -194,8 +245,37 @@ export class ExpressionService {
         }
     }
 
+    expressionToForm(xpn: Expression): FormGroup {
+        const mngsFA = new FormArray([]);
+        xpn.meanings.forEach(mng => {
+            const xmlsFA = new FormArray([]);
+            mng.examples.forEach(xml => {
+                xmlsFA.push(new FormGroup({
+                    id: new FormControl(xml.id),
+                    meaningId: new FormControl(xml.meaningId),
+                    text: new FormControl(xml.text, Validators.required)
+                }));
+            });
+            mngsFA.push(new FormGroup({
+                id: new FormControl(mng.id),
+                text: new FormControl(mng.text, Validators.required),
+                partsOfSpeech: new FormControl(mng.partsOfSpeech),
+                language: new FormControl(mng.language),
+                examples: xmlsFA
+            }));
+        });
+        return new FormGroup({
+            id: new FormControl(xpn.id),
+            text: new FormControl(xpn.text, Validators.required),
+            type: new FormControl(xpn.type),
+            rating: new FormControl(xpn.rating),
+            meanings: mngsFA
+        });
+    }
+
     getBlankExpressionFormGroup() {
         return new FormGroup({
+            id: new FormControl(''),
             text: new FormControl('', Validators.required),
             type: new FormControl(null, Validators.required),
             rating: new FormControl(5),
@@ -205,7 +285,8 @@ export class ExpressionService {
 
     getBlankMeaningFormGroup() {
         return new FormGroup({
-            text: new FormControl(''),
+            id: new FormControl(''),
+            text: new FormControl('', Validators.required),
             partsOfSpeech: new FormControl('noun'),
             language: new FormControl('english'),
             examples: new FormArray([])
@@ -214,7 +295,8 @@ export class ExpressionService {
 
     getBlankExampleFormGroup() {
         return new FormGroup({
-            text: new FormControl('')
+            id: new FormControl(''),
+            text: new FormControl('', Validators.required)
         });
     }
 }

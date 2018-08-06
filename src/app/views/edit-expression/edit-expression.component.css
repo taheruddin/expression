@@ -1,0 +1,12 @@
+.star {
+    font-size: 1.6rem;
+    color: #999999;
+}
+.filled {
+    color: #1e90ff;
+}
+
+.highlight {
+    background-color: #ffeeee;
+    border: 1px solid #ffcccc !important;
+}

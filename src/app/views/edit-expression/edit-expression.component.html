@@ -1,3 +1,96 @@
-<p>
-  edit-expression works!
-</p>
+<div *ngIf="xFG">
+    <form [formGroup]="xFG" (ngSubmit)="save()">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-center">Expression </h2>
+                <textarea [formControl]="xFG.get('text')"
+                          class="form-control my-4"
+                          [ngClass]="{'is-invalid': xFG.get('text').invalid}"></textarea>
+                <p class="text-center py-0 rating">
+                    <ngb-rating [formControl]="xFG.get('rating')">
+                        <ng-template let-fill="fill" let-index="index">
+                            <span class="star" [class.filled]="fill === 100">&#9733;</span>
+                        </ng-template>
+                    </ngb-rating><br>
+                    Power of this expression is <span>{{xFG.get('rating').value}} .</span>
+                </p>
+                <h3 class="text-center">Meanings</h3>
+                <div class="form-group border p-4"
+                     *ngFor="let meaning of xFG.get('meanings')['controls']; index as m;"
+                     [ngClass]="{'highlight': (mHigh === m)}">
+                    <textarea [formControl]="meaning.get('text')" placeholder="meaning" class="form-control my-4"></textarea>
+                    <div class="form-row">
+                        <div class="col-md-6">
+                            <select [formControl]="meaning.get('partsOfSpeech')"
+                                    [ngClass]="{'is-invalid': (meaning.get('partsOfSpeech').invalid && xpnFrm.dirty)}"
+                                    class="form-control">
+                                <option *ngFor="let part of parts" [ngValue]="part">{{part | titlecase}}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <select [formControl]="meaning.get('language')"
+                                    class="form-control">
+                                <option *ngFor="let lng of lngs">{{lng | titlecase}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div *ngFor="let example of meaning.get('examples')['controls']; index as e"
+                         class="form-group border mt-4 px-2 pb-2"
+                         [ngClass]="{'highlight': (eHigh.m === m && eHigh.e === e)}">
+                            <textarea [formControl]="example.get('text')"
+                                placeholder="example"
+                                class="form-control mt-2 mb-1"></textarea>
+                        <div class="text-center">
+                            <button type="button"
+                                    class="btn btn-danger"
+                                    (click)="removeExample(m, e)"
+                                    (mouseover)="overExample(m, e)"
+                                    (mouseleave)="leaveExample(m, e)">Remove</button>
+                        </div>
+                    </div>
+                    <p class="text-center mt-2 p-1 border">
+                        <button type="button" class="btn btn-primary" (click)="addExample(m)">Add example</button>
+                    </p>
+                    <p class="text-center mt-2">
+                        <button type="button"
+                                class="btn btn-danger btn-block"
+                                (click)="removeMeaning(m)"
+                                (mouseover)="overMeaning(m)"
+                                (mouseleave)="leaveMeaning(m)">Remove meaning</button>
+                    </p>
+                </div><!--meaning-->
+                <div class="form-row">
+                    <div class="col">
+                        <p class="text-center">
+                            <button type="button" class="btn btn-primary btn-block" (click)="addMeaning()">Add meaning</button>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col">
+                <p class="text-center">
+                    <button type="submit" class="btn btn-success" [disabled]="xFG.invalid">Save</button>
+                </p>
+            </div>
+        </div>
+    </form>
+</div>
+
+<ng-template #confirmer let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <h4 class="modal-title">Are you sure?</h4>
+        <button type="button" class="close" aria-label="Close" (click)="d(false)">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p>Once you confirm, it will not be shown on page.
+            But, to make this change permanent click the "Save" button.</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-success" (click)="d(false)">Cancel</button>
+        <button type="button" class="btn btn-danger" (click)="c(true)">Yes, delete</button>
+    </div>
+</ng-template>
