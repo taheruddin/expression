@@ -1,5 +1,5 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {ExpressionService} from '../../services/expression.service';
 import {Expression} from '../../models/expression';
 import {FormArray, FormGroup} from '@angular/forms';
@@ -28,6 +28,7 @@ export class EditExpressionComponent implements OnInit {
     eHigh: {m: number, e: number};
 
     constructor(private route: ActivatedRoute,
+                private router: Router,
                 private xpnServ: ExpressionService,
                 private modalServ: NgbModal) {
         this.xpnTypes = expressiontypes;
@@ -41,7 +42,6 @@ export class EditExpressionComponent implements OnInit {
         this.xpnServ.getFullEpressionById(this.id, xpn => {
             this.xpn = xpn;
             this.xFG = this.xpnServ.expressionToForm(this.xpn);
-            console.log(this.xFG);
         });
     }
 
@@ -83,6 +83,9 @@ export class EditExpressionComponent implements OnInit {
             const mngId = (<FormArray>this.xFG.get('meanings')).at(meaningIndex).get('id').value;
             if (mngId) {
                 this.mngsToDel.push(mngId);
+                this.xpn.meanings[meaningIndex].examples.forEach(xml => {
+                    this.xmlsToDel.push(xml.id);
+                });
             }
             (<FormArray>this.xFG.get('meanings')).removeAt(meaningIndex);
         }).catch(reason => {
@@ -112,8 +115,53 @@ export class EditExpressionComponent implements OnInit {
     }
 
     save() {
+        console.log(this.xpn);
+        const unqXmlsDel = Array.from(new Set(this.xmlsToDel));
+        const unqMngsDel = Array.from(new Set(this.mngsToDel));
+        console.log(unqXmlsDel);
+        console.log(unqMngsDel);
         const up = this.xpnServ.formToExpression(this.xFG);
-        console.log(up);
-        console.log(this.xFG.dirty);
+        if (unqXmlsDel.length && unqMngsDel.length) {
+            this.xpnServ.deleteExamples(unqXmlsDel, () => {
+                this.xpnServ.deleteMeanings(unqMngsDel, () => {
+                    if (this.xFG.dirty) {
+                        this.xpnServ.updateAll(up, this.xFG, () => {
+                            this.router.navigate(['/show/' + this.xpn.id]);
+                        });
+                    } else {
+                        this.router.navigate(['/show/' + this.xpn.id]);
+                    }
+                });
+            });
+        } else if (unqXmlsDel.length) {
+            this.xpnServ.deleteExamples(unqXmlsDel, () => {
+                if (this.xFG.dirty) {
+                    this.xpnServ.updateAll(up, this.xFG, () => {
+                        this.router.navigate(['/show/' + this.xpn.id]);
+                    });
+                } else {
+                    this.router.navigate(['/show/' + this.xpn.id]);
+                }
+            });
+        } else if (unqMngsDel.length) {
+            this.xpnServ.deleteMeanings(unqMngsDel, () => {
+                if (this.xFG.dirty) {
+                    this.xpnServ.updateAll(up, this.xFG, () => {
+                        this.router.navigate(['/show/' + this.xpn.id]);
+                    });
+                } else {
+                    this.router.navigate(['/show/' + this.xpn.id]);
+                }
+            });
+        } else {
+            if (this.xFG.dirty) {
+                this.xpnServ.updateAll(up, this.xFG, () => {
+                    this.router.navigate(['/show/' + this.xpn.id]);
+                });
+            } else {
+                this.router.navigate(['/show/' + this.xpn.id]);
+            }
+        }
+
     }
 }

@@ -1,12 +1,3 @@
-<!--<p>
-  {{xpn | async | json}}
-</p>
-
-<p>
-    {{xpns | async | json}}
-</p>-->
-
-
 <div class="row mb-4">
     <div class="col-12 text-center">
         <a class="btn btn-success" routerLink="/home">Back to Home</a>
@@ -31,12 +22,13 @@
 
         </p>
         <p class="text-center py-0 rating">
+            <span class="text-secondary h5">&darr; POWER &darr;</span> <br>
             <ngb-rating [formControl]="xpnFrm.get('rating')">
                 <ng-template let-fill="fill" let-index="index">
                     <span class="star" [class.filled]="fill === 100">&#9733;</span>
                 </ng-template>
             </ngb-rating><br>
-            How much you like this expression?
+
         </p>
         <div class="form-group border-bottom py-4">
             <h3 class="text-center">Meanings</h3>

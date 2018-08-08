@@ -13,6 +13,7 @@ import {reject} from 'q';
 import {Observable} from 'rxjs/internal/Observable';
 import {from} from 'rxjs/internal/observable/from';
 import {after} from 'selenium-webdriver/testing';
+import {last, take, takeLast} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -37,7 +38,7 @@ export class ExpressionService {
     getFullEpressionById(id: string, done?: Function) {
         const xpn = new Expression();
         xpn.id = id;
-        this.afs.doc(this.xpnColName + xpn.id).valueChanges().subscribe(xpnDoc => {
+        this.afs.doc(this.xpnColName + xpn.id).valueChanges().pipe(take(1)).subscribe(xpnDoc => {
             if (xpnDoc) {
                 xpn.text = (<Expression>xpnDoc).text;
                 xpn.rating = (<Expression>xpnDoc).rating;
@@ -45,7 +46,7 @@ export class ExpressionService {
                 xpn.meanings = [];
                 this.afs
                     .collection(this.mngColName , ref => ref.where('expressionId', '==', id))
-                    .snapshotChanges()
+                    .snapshotChanges().pipe(take(1))
                     .subscribe(mctions => {
                         if (mctions.length === 0 && done) {
                             done(xpn);
@@ -56,7 +57,7 @@ export class ExpressionService {
                             mng.examples = [];
                             this.afs
                                 .collection(this.xmlColName , ref => ref.where('meaningId', '==', mng.id))
-                                .snapshotChanges()
+                                .snapshotChanges().pipe(take(1))
                                 .subscribe(ections => {
                                     if (ections.length === 0 && mi === mctions.length - 1 && done) {
                                         done(xpn);
@@ -132,20 +133,20 @@ export class ExpressionService {
         return this.xpnCol.add(newXpn);
     }
 
-    addMeaning(mng: Meaning): Promise<DocumentReference> {
+    addMeaning(mng: Meaning, expressionId?: string): Promise<DocumentReference> {
         const newMng = {
             text: mng.text,
             partsOfSpeech: mng.partsOfSpeech,
             language: mng.language,
-            expressionId: mng.expressionId
+            expressionId: mng.expressionId || expressionId || ''
         };
         return this.mngCol.add(newMng);
     }
 
-    addExample(xml: Example): Promise<DocumentReference> {
+    addExample(xml: Example, meaningId?: string): Promise<DocumentReference> {
         const newXml = {
             text: xml.text,
-            meaningId: xml.meaningId
+            meaningId: xml.meaningId || meaningId || ''
         };
         return this.xmlCol.add(newXml);
     }
@@ -187,62 +188,52 @@ export class ExpressionService {
         });
     }
 
-    formToExpression(xpnFrm: FormGroup): Expression |false {
-        if (xpnFrm.dirty) {
-            const newXpn: Expression = {
-                id: (xpnFrm.get('id') && xpnFrm.get('id').value) || '',
-                text: xpnFrm.get('text').value,
-                type: xpnFrm.get('type').value,
-                rating: xpnFrm.get('rating').value,
-                meanings: []
-            };
-            const mngs = (<FormArray>xpnFrm.get('meanings'));
-            const mngsLen = mngs.length;
-            for (let m = 0; m < mngsLen; m++) {
-                const newMeaning = this.formToMeaning(<FormGroup>mngs.at(m));
-                if (newMeaning) {
-                    newXpn.meanings.push(newMeaning);
-                }
+    formToExpression(xpnFrm: FormGroup): Expression {
+        const newXpn: Expression = {
+            id: (xpnFrm.get('id') && xpnFrm.get('id').value) || '',
+            text: xpnFrm.get('text').value,
+            type: xpnFrm.get('type').value,
+            rating: xpnFrm.get('rating').value,
+            meanings: []
+        };
+        const mngs = (<FormArray>xpnFrm.get('meanings'));
+        const mngsLen = mngs.length;
+        for (let m = 0; m < mngsLen; m++) {
+            const newMeaning = this.formToMeaning(<FormGroup>mngs.at(m));
+            if (newMeaning) {
+                newXpn.meanings.push(newMeaning);
             }
-            return newXpn;
-        } else {
-            return false;
         }
+        return newXpn;
     }
 
-    formToMeaning(mngForm: FormGroup): Meaning | false {
-        if (mngForm.dirty) {
-            const newMng: Meaning = {
-                expressionId: '',
-                text: mngForm.get('text').value,
-                partsOfSpeech: mngForm.get('partsOfSpeech').value,
-                language: mngForm.get('language').value,
-                examples: []
-            };
-            const xmls = (<FormArray>mngForm.get('examples'));
-            const xplsLen = xmls.length;
-            for (let p = 0; p < xplsLen; p++) {
-                const newXml = this.formToExample(<FormGroup>xmls.at(p));
-                if (newXml) {
-                    newMng.examples.push(newXml);
-                }
+    formToMeaning(mngForm: FormGroup): Meaning {
+        const newMng: Meaning = {
+            id: (mngForm.get('id') && mngForm.get('id').value) || '',
+            expressionId: (mngForm.get('expressionId') && mngForm.get('expressionId').value) || '',
+            text: mngForm.get('text').value,
+            partsOfSpeech: mngForm.get('partsOfSpeech').value,
+            language: mngForm.get('language').value,
+            examples: []
+        };
+        const xmls = (<FormArray>mngForm.get('examples'));
+        const xplsLen = xmls.length;
+        for (let p = 0; p < xplsLen; p++) {
+            const newXml = this.formToExample(<FormGroup>xmls.at(p));
+            if (newXml) {
+                newMng.examples.push(newXml);
             }
-            return newMng;
-        } else {
-            return false;
         }
+        return newMng;
     }
 
-    formToExample(xmlForm: FormGroup): Example | false {
-        if (xmlForm.dirty) {
-            const newXml: Example = {
-                meaningId: '',
-                text: xmlForm.get('text').value
-            };
-            return newXml;
-        } else {
-            return false;
-        }
+    formToExample(xmlForm: FormGroup): Example {
+        const newXml: Example = {
+            id: (xmlForm.get('id') && xmlForm.get('id').value) || '',
+            meaningId: (xmlForm.get('meaningId') && xmlForm.get('meaningId').value) || '',
+            text: xmlForm.get('text').value
+        };
+        return newXml;
     }
 
     expressionToForm(xpn: Expression): FormGroup {
@@ -267,9 +258,162 @@ export class ExpressionService {
         return new FormGroup({
             id: new FormControl(xpn.id),
             text: new FormControl(xpn.text, Validators.required),
-            type: new FormControl(xpn.type),
+            type: new FormControl(xpn.type, Validators.required),
             rating: new FormControl(xpn.rating),
             meanings: mngsFA
+        });
+    }
+
+    updateAll(xpn: Expression, fG: FormGroup, done?: Function) {
+        const upXpn = {};
+        ['text', 'type', 'rating'].forEach(field => {
+            if (fG.get(field).dirty) {
+                upXpn[field] = xpn[field];
+            }
+        });
+        if (Object.keys(upXpn).length) {
+            this.afs.doc(this.xpnColName + xpn.id)
+                .update(upXpn).then(result => {
+                this.updateOrAddMeanings(xpn.meanings, (<FormArray>fG.get('meanings')), xpn.id, done);
+            }).catch(reason => {
+                console.log(reason);
+            });
+        } else {
+            this.updateOrAddMeanings(xpn.meanings, (<FormArray>fG.get('meanings')), xpn.id, done);
+        }
+    }
+
+    updateOrAddMeanings(meanings: Meaning[], mngsFA: FormArray, expressionId: string, done: Function) {
+        let modified = false;
+        meanings.forEach((mng , index) => {
+            if (mng.id) {
+                if (mngsFA.at(index).dirty) {
+                    modified = true;
+                    const upMng = {};
+                    ['text', 'partsOfSpeech', 'language'].forEach(field => {
+                        if (mngsFA.at(index).get(field).dirty) {
+                            upMng[field] = mng[field];
+                        }
+                    });
+                    if (Object.keys(upMng).length) {
+                        this.afs.doc(this.mngColName + mng.id)
+                            .update({text: mng.text}) // double view issue triggers here
+                            .then(response => {
+                                if (done && index === meanings.length - 1) {
+                                    this.updateOrAddExamples(
+                                        mng.examples,
+                                        (<FormArray>mngsFA.at(index).get('examples')),
+                                        mng.id,
+                                        done
+                                    );
+                                } else {
+                                    this.updateOrAddExamples(
+                                        mng.examples,
+                                        (<FormArray>mngsFA.at(index).get('examples'))
+                                    );
+                                }
+                            })
+                            .catch(reason => {console.log(reason); });
+                    } else {
+                        if (done && index === meanings.length - 1) {
+                            this.updateOrAddExamples(
+                                mng.examples,
+                                (<FormArray>mngsFA.at(index).get('examples')),
+                                mng.id,
+                                done
+                            );
+                        } else {
+                            this.updateOrAddExamples(
+                                mng.examples,
+                                (<FormArray>mngsFA.at(index).get('examples')),
+                                mng.id
+                            );
+                        }
+                    }
+                }
+            } else {
+                modified = true;
+                this.addMeaning(mng, expressionId)
+                    .then(addedMngDoc => {
+                        mng.examples.forEach(xml => {
+                            xml.meaningId = addedMngDoc.id;
+                        });
+                        if (done && index === meanings.length - 1) {
+                            this.updateOrAddExamples(
+                                mng.examples,
+                                (<FormArray>mngsFA.at(index).get('examples')),
+                                mng.id,
+                                done
+                            );
+                        } else {
+                            this.updateOrAddExamples(
+                                mng.examples,
+                                (<FormArray>mngsFA.at(index).get('examples')),
+                                mng.id
+                            );
+                        }
+                    })
+                    .catch(reason => {console.log(reason); });
+            }
+        });
+        if (!modified) {
+            done();
+        }
+    }
+
+    updateOrAddExamples(examples: Example[], xmlsFA: FormArray, meaningId?: string, done?: Function) {
+        let modified = false;
+        examples.forEach((xml , index) => {
+            if (xml.id) {
+                if (xmlsFA.at(index).dirty) {
+                    modified = true;
+                    this.afs.doc(this.xmlColName + xml.id)
+                        .update({text: xml.text})
+                        .then(response => {
+                            if (done && index === examples.length - 1) {
+                                done();
+                            }
+                        })
+                        .catch(reason => {console.log(reason); });
+                }
+            } else {
+                modified = true;
+                this.addExample(xml, meaningId)
+                    .then(response => {
+                        console.log(response);
+                        if (done && index === examples.length - 1) {
+                            done();
+                        }
+                    })
+                    .catch(reason => {console.log(reason); });
+            }
+        });
+        if (!modified) {
+            done();
+        }
+    }
+
+    deleteMeanings(ids: string[], done?: Function) {
+        ids.forEach((id, index) => {
+            this.afs.doc(this.mngColName + id).delete().then(response => {
+                if (index === ids.length - 1 && done) {
+                    done();
+                }
+            }).catch(reason => {
+                console.log(reason);
+            });
+        });
+    }
+
+    deleteExamples(ids: string[], done?: Function) {
+        ids.forEach((id, index) => {
+            this.afs.doc(this.xmlColName + id).delete().then(response => {
+                if (index === ids.length - 1 && done) {
+                    done();
+                }
+            }).catch(reason => {
+                console.log(reason);
+            });
         });
     }
 

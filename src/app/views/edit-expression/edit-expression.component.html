@@ -14,6 +14,17 @@
                     </ngb-rating><br>
                     Power of this expression is <span>{{xFG.get('rating').value}} .</span>
                 </p>
+                <p class="text-center">
+                    <label>
+                        <select [formControl]="xFG.get('type')"
+                                [ngClass]="{'is-invalid': (xFG.get('type').invalid && xFG.dirty)}"
+                                class="form-control">
+                            <option [ngValue]="null">Expression type</option>
+                            <option *ngFor="let xpnType of xpnTypes" [ngValue]="xpnType">{{xpnType | titlecase}}</option>
+                        </select>
+                    </label>
+
+                </p>
                 <h3 class="text-center">Meanings</h3>
                 <div class="form-group border p-4"
                      *ngFor="let meaning of xFG.get('meanings')['controls']; index as m;"
@@ -71,6 +82,7 @@
         <div class="form-row">
             <div class="col">
                 <p class="text-center">
+                    <a class="btn btn-dark mr-2" routerLink="/show/{{xpn.id}}">Cancel</a>
                     <button type="submit" class="btn btn-success" [disabled]="xFG.invalid">Save</button>
                 </p>
             </div>

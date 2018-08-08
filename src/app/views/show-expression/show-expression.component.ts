@@ -12,11 +12,15 @@ import {ExpressionService} from '../../services/expression.service';
 export class ShowExpressionComponent implements OnInit {
     xpn: Expression;
 
-    constructor(private route: ActivatedRoute, private afs: AngularFirestore, private xpnServ: ExpressionService) {
-        this.xpn = this.xpnServ.getEpressionById(this.route.snapshot.params['id']);
+    constructor(private route: ActivatedRoute,
+                private afs: AngularFirestore,
+                private xpnServ: ExpressionService) {
     }
 
     ngOnInit() {
+        this.xpnServ.getFullEpressionById(this.route.snapshot.params['id'], xpn => {
+            this.xpn = xpn;
+        });
     }
 
 }
