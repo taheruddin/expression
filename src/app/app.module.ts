@@ -15,6 +15,7 @@ import { HomeComponent } from './views/home/home.component';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { EditExpressionComponent } from './views/edit-expression/edit-expression.component';
 import { ShowExpressionComponent } from './views/show-expression/show-expression.component';
+import { ListExpressionComponent } from './views/list-expression/list-expression.component';
 
 
 @NgModule({
@@ -23,7 +24,8 @@ import { ShowExpressionComponent } from './views/show-expression/show-expression
         AddExpressionComponent,
         HomeComponent,
         EditExpressionComponent,
-        ShowExpressionComponent
+        ShowExpressionComponent,
+        ListExpressionComponent
     ],
     imports: [
         BrowserModule,

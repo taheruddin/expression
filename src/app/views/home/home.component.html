@@ -37,23 +37,6 @@
     </div>
 </div>
 
-<div class="row">
-    <div class="col-12">
-        <h4 class="text-center mt-lg-5">Most liked expressions</h4>
-    </div>
-</div>
+<hr>
 
-<div class="list-group">
-    <a routerLink="/show/{{xpn.id}}"
-       *ngFor="let xpn of (topRated | async)"
-       class="list-group-item">
-        <div class="d-flex w-100 justify-content-between">
-            <h4 class="mb-1">{{xpn.text | titlecase}}</h4>
-            <small>
-                {{xpn.rating}}<ngb-rating [(rate)]="xpn.rating"></ngb-rating>
-            </small>
-        </div>
-    </a>
-</div>
-
-<!--{{topRated | async | json}}-->
+<app-list-expression></app-list-expression>

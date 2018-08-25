@@ -26,7 +26,7 @@
 
                 </p>
                 <h3 class="text-center">Meanings</h3>
-                <div class="form-group border p-4"
+                <div class="meaning form-group border p-4"
                      *ngFor="let meaning of xFG.get('meanings')['controls']; index as m;"
                      [ngClass]="{'highlight': (mHigh === m)}">
                     <textarea [formControl]="meaning.get('text')" placeholder="meaning" class="form-control my-4"></textarea>
@@ -46,7 +46,7 @@
                         </div>
                     </div>
                     <div *ngFor="let example of meaning.get('examples')['controls']; index as e"
-                         class="form-group border mt-4 px-2 pb-2"
+                         class="example form-group border mt-4 px-2 pb-2"
                          [ngClass]="{'highlight': (eHigh.m === m && eHigh.e === e)}">
                             <textarea [formControl]="example.get('text')"
                                 placeholder="example"

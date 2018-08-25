@@ -10,3 +10,22 @@
     background-color: #ffeeee;
     border: 1px solid #ffcccc !important;
 }
+
+.meaning {
+    transition: height ease 1s;
+}
+
+.example, .meaning {
+    animation: example 2s;
+}
+
+@keyframes example {
+    from {
+        background-color: #ffeeee;
+        opacity: 0;
+    }
+    to {
+        background-color: #ffffff;
+        opacity: 100%;
+    }
+}

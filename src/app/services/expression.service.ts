@@ -13,7 +13,7 @@ import {reject} from 'q';
 import {Observable} from 'rxjs/internal/Observable';
 import {from} from 'rxjs/internal/observable/from';
 import {after} from 'selenium-webdriver/testing';
-import {last, take, takeLast} from 'rxjs/operators';
+import {last, map, take, takeLast} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -442,5 +442,37 @@ export class ExpressionService {
             id: new FormControl(''),
             text: new FormControl('', Validators.required)
         });
+    }
+
+    getExpressionsByType(type: String) {
+        return this.afs
+            .collection<Expression>(this.xpnColName, ref => ref
+                .where('type', '==', type)
+                .orderBy('text'))
+            .snapshotChanges()
+            .pipe(
+                take(1),
+                map(actions => actions.map(
+                    action => {
+                        const xpn: Expression = action.payload.doc.data() as Expression;
+                        xpn.id = action.payload.doc.id || '';
+                        return xpn;
+                    }))
+            );
+    }
+
+    getAllExpressions() {
+        return this.afs.collection<Expression>(this.xpnColName)
+            .snapshotChanges()
+            .pipe(
+                take(1),
+                map(actions => actions.map(
+                    action => {
+                        const xpn = action.payload.doc.data();
+                        xpn.id = action.payload.doc.id;
+                        return xpn;
+                    }
+                ))
+            );
     }
 }

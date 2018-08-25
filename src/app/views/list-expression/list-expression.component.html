@@ -1,0 +1,30 @@
+<div class="row mt-lg-5">
+    <div class="col-8">
+        <h4>Expressions</h4>
+    </div>
+    <div class="col-md-4 mx-auto">
+        <div class="form-inline text-right">
+            <label class="lg-font my-1 mr-2 text-lg-left">Type</label>
+            <select [formControl]="type" class="form-control" (change)="getExpressions(type.value)">
+                <option [ngValue]="null">Any</option>
+                <option *ngFor="let xpnType of xpnTypes" [ngValue]="xpnType">{{xpnType | titlecase}}</option>
+            </select>
+        </div>
+    </div>
+</div>
+<div class="row my-4">
+    <div class="col-12">
+        <div class="list-group">
+            <a routerLink="/show/{{xpn.id}}"
+               *ngFor="let xpn of (xpns | async)"
+               class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h4 class="mb-1">{{xpn.text | titlecase}}</h4>
+                    <small>
+                        {{xpn.rating}}<ngb-rating [(rate)]="xpn.rating"></ngb-rating>
+                    </small>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
